@@ -23,7 +23,7 @@ jobs:
       - name: install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install grop
+          pip install groq
       - name: test ragnews
         run: |
-          do python3 ragnews.py; done
+          python3 ragnews.py < sampleQuestion.txt
