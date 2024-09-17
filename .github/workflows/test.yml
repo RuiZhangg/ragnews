@@ -26,4 +26,4 @@ jobs:
           pip install grop
       - name: test ragnews
         run: |
-          do python3 ragnews.py; done
+          python3 ragnews.py < sampleQuestion.txt
