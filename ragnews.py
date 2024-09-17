@@ -369,7 +369,10 @@ if __name__ == '__main__':
     else:
         import readline
         while True:
-            text = input('ragnews> ')
+            try:
+                text = input('ragnews> ')
+            except EOFError:
+                break
             if len(text.strip()) > 0:
                 output = rag(text, db)
                 print(output)
