@@ -26,4 +26,4 @@ jobs:
           pip install groq
       - name: test ragnews
         run: |
-          python3 ragnews.py < sampleQuestion.txt
+          python3 evaluate.py

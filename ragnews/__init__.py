@@ -13,6 +13,7 @@ import random
 import logging
 import re
 import sqlite3
+from sqlite3 import OperationalError
 
 import groq
 
@@ -29,7 +30,7 @@ client = Groq(
 )
 
 
-def run_llm(system, user, model='llama3-8b-8192', seed=None):
+def run_llm(system, user, model='llama-3.1-70b-versatile', seed=None):
     '''
     This is a helper function for all the uses of LLMs in this file.
     '''
@@ -118,19 +119,35 @@ def _catch_errors(func):
 ################################################################################
 
 
-def rag(text, db):
+def rag(text, db, keywords_text=None):
     '''
     This function uses retrieval augmented generation (RAG) to generate an LLM response to the input text.
     The db argument should be an instance of the `ArticleDB` class that contains the relevant documents to use.
     '''
+    if keywords_text is None:
+        keywords_text = text
 
-    query = extract_keywords(text)
-    articles = db.find_articles(query)
+    keywords = extract_keywords(keywords_text)
+    articles = db.find_articles(keywords, keywords_text = keywords_text)
     sources = ""
     for i in range(len(articles)):
-        sources += "ARTICLE" + str(i) + ": " + articles[i]["en_summary"] + "\n"
+        sources += "ARTICLE" + str(i) + " summary: " + articles[i]["en_summary"] + "\n"
+        if articles[i]["en_translation"] is None:
+            sources += "ARTICLE" + str(i) + " content: " + articles[i]["text"] + "\n"
+        else:
+            sources += "ARTICLE" + str(i) + " content: " + articles[i]["en_translation"] + "\n"
+
+    if len(sources) + len(text) > 19000:
+        sources = ""
+        for i in range(len(articles)):
+            sources += "ARTICLE" + str(i) + " summary: " + articles[i]["en_summary"] + "\n"
+
     system = "You are a news analyst. You will be given several articles and a question. Answer the question based on the articles."
     user = sources + "QUESTION: " + text
+
+    logging.info('rag.SYSTEM: ' + system)
+    logging.info('rag.USER' + user)
+
     return run_llm(system, user)
 
 
@@ -207,7 +224,7 @@ class ArticleDB:
         except sqlite3.OperationalError:
             self.logger.debug('CREATE TABLE failed')
 
-    def find_articles(self, query, limit=10, timebias_alpha=1):
+    def find_articles(self, query, limit=10, timebias_alpha=1, keywords_text = None):
         '''
         Return a list of articles in the database that match the specified query.
 
@@ -223,9 +240,17 @@ class ArticleDB:
         ORDER BY adjusted_rank DESC
         LIMIT ?;
         '''
+
         _logsql(sql)
         cursor = self.db.cursor()
-        cursor.execute(sql, (timebias_alpha, timebias_alpha, query, limit))
+        while True:
+            try:
+                cursor.execute(sql, (timebias_alpha, timebias_alpha, query, limit))
+            except OperationalError:
+                if keywords_text is not None:
+                    query = extract_keywords(keywords_text)
+                continue
+            break
         rows = cursor.fetchall()
         return [dict(row) for row in rows]
 
