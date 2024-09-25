@@ -26,4 +26,4 @@ jobs:
           pip install groq
       - name: test ragnews
         run: |
-          python3 evaluate.py
+          python3 evaluate.py --path wiki__page=2024_United_States_presidential_election,recursive_depth=0__dpsize=paragraph,transformations=[canonicalize, group, rmtitles, split]
