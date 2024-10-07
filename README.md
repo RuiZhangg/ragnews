@@ -18,4 +18,4 @@ Success: 102
 Failure: 25
 Success ratio: 0.80
 ```
-Currently, it constantly gets a success ratio larger than 0.75 on `data/wiki__page=2024_United_States_presidential_election,recursive_depth=0__dpsize=paragraph,transformations=[canonicalize, group, rmtitles, split]` in haity-trumpet submodule.
+Currently, it constantly gets a success ratio greater than 0.70 on `data/wiki__page=2024_United_States_presidential_election,recursive_depth=0__dpsize=paragraph,transformations=[canonicalize, group, rmtitles, split]` in haity-trumpet submodule.
