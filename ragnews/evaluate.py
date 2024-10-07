@@ -4,7 +4,8 @@ Trumpet tool/dataset.
 '''
 import sys
 sys.path.append("..")
-import ragnews
+from ragnews import ArticleDB
+from ragnews import rag
 
 class RAGEvaluator:
     def __init__(self, labels, db):
@@ -22,7 +23,7 @@ class RAGEvaluator:
         ['Harris', 'Trump']
         '''
 
-        db = ragnews.ArticleDB(self.db)
+        db = ArticleDB(self.db)
         textprompt = f'''
         This is a question based on standard cloze style benchmarks.
         I'm going to provide you a sentence, and that sentence will have a token inside of it that will look like [MASK0] or [MASK1] or [MASK2] and so on.
@@ -45,7 +46,7 @@ class RAGEvaluator:
         INPUT: {masked_text}
         OUTPUT: '''
 
-        output = ragnews.rag(textprompt, db, keywords_text=masked_text)
+        output = rag(textprompt, db, keywords_text=masked_text)
         result = output.split()
 
         return result
