@@ -2,12 +2,14 @@
 This file is for evaluating the quality of our RAG system using the Hairy
 Trumpet tool/dataset.
 '''
-
+import sys
+sys.path.append("..")
 import ragnews
 
 class RAGEvaluator:
-    def __init__(self, labels):
+    def __init__(self, labels, db):
         self.labels = labels
+        self.db = db
 
     def predict(self, masked_text):
         '''
@@ -20,7 +22,7 @@ class RAGEvaluator:
         ['Harris', 'Trump']
         '''
 
-        db = ragnews.ArticleDB('ragnews.db')
+        db = ragnews.ArticleDB(self.db)
         textprompt = f'''
         This is a question based on standard cloze style benchmarks.
         I'm going to provide you a sentence, and that sentence will have a token inside of it that will look like [MASK0] or [MASK1] or [MASK2] and so on.
@@ -52,8 +54,8 @@ class RAGEvaluator:
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--db', default='ragnews.db')
-    parser.add_argument('--path', default="hairy-trumpet/data/wiki__page=2024_United_States_presidential_election,recursive_depth=0__dpsize=paragraph,transformations=[canonicalize, group, rmtitles, split]")
+    parser.add_argument('--db', default='../ragnews.db')
+    parser.add_argument('--path', default="../hairy-trumpet/data/wiki__page=2024_United_States_presidential_election,recursive_depth=0__dpsize=paragraph,transformations=[canonicalize, group, rmtitles, split]")
     args = parser.parse_args()
 
     import json
@@ -63,7 +65,7 @@ if __name__ == '__main__':
             dp = json.loads(line)
             labels.update(dp['masks'])
     
-    model = RAGEvaluator(labels)
+    model = RAGEvaluator(labels, args.db)
 
     success = 0
     failure = 0
